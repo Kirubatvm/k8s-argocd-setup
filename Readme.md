@@ -1,69 +1,99 @@
-# Configure 3 tier application in kubernetes with argocd.
+# Configure 3-Tier Application in Kubernetes with ArgoCD
 
-clone the repo and follow the below steps.
+Clone this repository and follow the steps below.
 
-## Install required tools
-install below tools in your linux environment.
+## Install Required Tools
 
-### Install docker
-sudo apt  install docker.io
+Install the following tools in your Linux environment (note: these instructions are for Linux; adapt for other OS as needed).
+
+### Install Docker
+```bash
+sudo apt install docker.io
+```
 
 ### Install kubectl
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"  
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl  
-kubectl version --client  
+```bash
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+kubectl version --client
+```
 
 ### Install Minikube
-curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64  
-chmod +x minikube  
-sudo mv minikube /usr/local/bin/  
-minikube version  
+```bash
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+chmod +x minikube
+sudo mv minikube /usr/local/bin/
+minikube version
+```
 
-### Install ArgoCD CLI (optionaly we can configure in argocd ui)
-curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64  
-sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd  
-rm argocd-linux-amd64  
-argocd version --client  
+### Install ArgoCD CLI (Optional: You can configure via ArgoCD UI)
+```bash
+curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+rm argocd-linux-amd64
+argocd version --client
+```
 
-### Start cluster with adequate resources
+### Start Cluster with Adequate Resources
+```bash
 minikube start --cpus=4 --memory=8192 --driver=docker
+```
 
-### Enable addons
-minikube addons enable ingress  
-minikube addons enable metrics-server  
+### Enable Addons
+```bash
+minikube addons enable ingress
+minikube addons enable metrics-server
+```
 
-### Verify cluster
-kubectl cluster-info  
-kubectl get nodes  
+### Verify Cluster
+```bash
+kubectl cluster-info
+kubectl get nodes
+```
 
+## Containerize the Application
 
-## Containerize our application
-Run below commands to build and push our images  
+Run the following commands to build and push images.
 
-cd app-source/services/backend  
-docker build -t dockerhub-id-image-name:version .  
-docker push dockerhub-id-image-name:version  
+### Backend Service
+```bash
+cd app-source/services/backend
+docker build -t dockerhub-id-image-name:version .
+docker push dockerhub-id-image-name:version
+```
 
-cd app-source/services/frontend  
-docker build -t dockerhub-id-image-name:version .  
-docker push dockerhub-id-image-name:version  
+### Frontend Service
+```bash
+cd app-source/services/frontend
+docker build -t dockerhub-id-image-name:version .
+docker push dockerhub-id-image-name:version
+```
 
-### Update maifest files.
-Update backend-deployment.yaml and frontend-deployment.yaml with the image name of your dockerhub
+### Update Manifest Files
+Update `backend-deployment.yaml` and `frontend-deployment.yaml` with your Docker Hub image names.
 
-## Argocd Deployment
-Run below command to configure your repo with argocd  
+## ArgoCD Deployment
 
-kubectl create namespace argocd  
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml  
+Run the following commands to configure your repository with ArgoCD.
 
-Use below command to portforward from minikube to local and access ui  
-kubectl port-forward -n argocd --address 0.0.0.0 svc/argocd-server 8080:443  
+```bash
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```
 
-To get password use below command  
-kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d  
+Use the following command to port-forward from Minikube to local and access the UI:
+```bash
+kubectl port-forward -n argocd --address 0.0.0.0 svc/argocd-server 8080:443
+```
+
+To get the password, use:
+```bash
+kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.password}" | base64 -d
+```
 
 ## Application Deployment
-Run below command to deploy our application.
 
+Run the following command to deploy the application:
+```bash
 kubectl apply -f k8s-gitops-config/argocd-app.yaml
+```
